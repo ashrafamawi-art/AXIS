@@ -11,8 +11,16 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
-AXIS_DIR = Path.home() / "AXIS"
-DEFAULT_LOG_PATH = AXIS_DIR / "status.log"
+def _default_log_path() -> Path:
+    raw = os.environ.get("LOG_PATH")
+    if raw:
+        p = Path(raw)
+    else:
+        p = Path("/tmp/status.log")
+    p.parent.mkdir(parents=True, exist_ok=True)
+    return p
+
+DEFAULT_LOG_PATH = _default_log_path()
 
 LEVEL_ORDER = {"DEBUG": 0, "INFO": 1, "WARNING": 2, "ERROR": 3, "CRITICAL": 4}
 
@@ -38,6 +46,7 @@ class AxisLogger:
         self.log_path = log_path
         self.min_level = min_level
         self.colour = colour and sys.stdout.isatty()
+        log_path.parent.mkdir(parents=True, exist_ok=True)
         self._file = open(log_path, "a", buffering=1, encoding="utf-8")
 
     def _write(self, level: str, message: str, extra: dict = None):

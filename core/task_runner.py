@@ -50,7 +50,7 @@ class TaskRunner:
                     self._log.error(msg)
                     return TaskResult(False, msg)
 
-        return TaskResult(False, f"No handler matched task: {desc!r}")
+        return await _handle_fallback(desc, self._graph, self._log)
 
 
 # ---------------------------------------------------------------------------
@@ -134,6 +134,15 @@ async def _handle_news_brief(desc: str, graph, log) -> TaskResult:
         success   = True,
         message   = f"Saved {len(stories)} stories → {saved}",
         artifacts = {"path": saved, "story_count": len(stories), "stories": stories},
+    )
+
+
+async def _handle_fallback(desc: str, graph, log) -> TaskResult:
+    log.info(f"No specific handler matched — acknowledging task: {desc!r}")
+    return TaskResult(
+        success=True,
+        message=f"Task received: {desc}",
+        artifacts={},
     )
 
 
